@@ -134,7 +134,6 @@ def handle_general_exception(e):
     return jsonify({"error": "An unexpected error occurred"}), 500
 
 
-
 # Run the application
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
