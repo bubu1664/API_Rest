@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, abort
+from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 
@@ -7,20 +8,25 @@ alumnos = []
 profesores = []
 
 # Helper functions for validation
-def validate_alumno(data):
+def validate_alumno(data, partial=False):
     required_fields = ["id", "nombres", "apellidos", "matricula", "promedio"]
     for field in required_fields:
-        if field not in data or data[field] == "":
+        # Vérifie si le champ est manquant ou s'il est défini comme None ou une chaîne vide
+        if field not in data and not partial:
             abort(400, description=f"The field '{field}' is required and cannot be empty.")
-    if not isinstance(data["promedio"], (int, float)):
+        elif field in data and (data[field] is None or data[field] == ""):
+            abort(400, description=f"The field '{field}' cannot be None or empty.")
+    if "promedio" in data and not isinstance(data["promedio"], (int, float)):
         abort(400, description="The field 'promedio' must be a number.")
 
-def validate_profesor(data):
+def validate_profesor(data, partial=False):
     required_fields = ["id", "numeroEmpleado", "nombres", "apellidos", "horasClase"]
     for field in required_fields:
-        if field not in data or data[field] == "":
+        if field not in data and not partial:
             abort(400, description=f"The field '{field}' is required and cannot be empty.")
-    if not isinstance(data["horasClase"], int):
+        elif field in data and (data[field] is None or data[field] == ""):
+            abort(400, description=f"The field '{field}' cannot be None or empty.")
+    if "horasClase" in data and not isinstance(data["horasClase"], int):
         abort(400, description="The field 'horasClase' must be an integer.")
 
 # Endpoints for alumnos (students)
@@ -57,8 +63,11 @@ def update_alumno(id):
         abort(404, description="Alumno not found.")
     if not request.json:
         abort(400, description="Data is required.")
+    validate_alumno(request.json, partial=True)  # Validation partielle avec None
     for field in ["nombres", "apellidos", "matricula", "promedio"]:
-        if field in request.json and request.json[field] != "":
+        if field in request.json:
+            if request.json[field] is None or request.json[field] == "":
+                abort(400, description=f"The field '{field}' cannot be None or empty.")
             alumno[field] = request.json[field]
     return jsonify(alumno), 200
 
@@ -104,8 +113,11 @@ def update_profesor(id):
         abort(404, description="Profesor not found.")
     if not request.json:
         abort(400, description="Data is required.")
+    validate_profesor(request.json, partial=True)  # Validation partielle avec None
     for field in ["numeroEmpleado", "nombres", "apellidos", "horasClase"]:
-        if field in request.json and request.json[field] != "":
+        if field in request.json:
+            if request.json[field] is None or request.json[field] == "":
+                abort(400, description=f"The field '{field}' cannot be None or empty.")
             profesor[field] = request.json[field]
     return jsonify(profesor), 200
 
@@ -116,10 +128,6 @@ def delete_profesor(id):
         abort(404, description="Profesor not found.")
     profesores.remove(profesor)
     return jsonify({}), 200
-
-
-
-from werkzeug.exceptions import HTTPException
 
 # Global error handler for HTTP exceptions
 @app.errorhandler(HTTPException)
@@ -132,7 +140,6 @@ def handle_http_exception(e):
 def handle_general_exception(e):
     """Handles any unexpected exceptions and returns a generic error response."""
     return jsonify({"error": "An unexpected error occurred"}), 500
-
 
 # Run the application
 if __name__ == '__main__':
