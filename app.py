@@ -6,19 +6,31 @@ from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
 # Flask configuration
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+
+BASE_URL = "http://127.0.0.1:5000"
+
+# Database
+endpoint = "database-2-instance-1.chaiyymsqn0u.us-east-1.rds.amazonaws.com"
+username = "admin"
+password = "imolecys"
+database_name = "rest_db"
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+  f'mysql+pymysql://{username}:{password}@{endpoint}:3306/{database_name}'
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = '/tmp/uploads'  # Temp directory for uploads
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
 db = SQLAlchemy(app)
 
 # AWS Credentials and Bucket Configuration
-AWS_ACCESS_KEY_ID = 'ASIA4E6YYM7RAYESJ26M'
-AWS_SECRET_ACCESS_KEY = '/L0HOBwRTXyP0tE7IapNMZkCkkZRrbxh6qcbtgND'
-AWS_SESSION_TOKEN ='IQoJb3JpZ2luX2VjEF0aCXVzLXdlc3QtMiJGMEQCIFSTSTIk0cOQRmv/AD6mcz6nJoq6M1k1eRb/gFH970r+AiBhHmCAfTqZJeVSl3yfWZabxPHnjkrI0run+1kYXN2+qCqtAgj2//////////8BEAAaDDgzNTI4ODg1MjQ1MCIMpdADrQZa3m+s4LSGKoECymu2XRqAH/NojysleqSgb3zLcVbz3XlUooDTFBcxamfmdzN0KHaG8/0uPQuWfeWqRzUGCTvXHBTDFpP6WEJks1MgNlMU/tqAgSPY0q+H5+UYfJemc1cyR52taSVJoaxZmsZpkLRbkN03SBmbwJDAyDGCeYFht08kDhx3e0nunwHLeF4FxIP7mKNLVTUCvG/7z3AHQIhFCvlCWdlGwqT7tDCHBp14g5CxvFituP2OkjTuSHHVgx/3QIgi30i35EnOJbcZbU+9ZOHPA37SNFeEf8cKQ/l4aSc2Bl9q2R8zGKv6NFNlJwIu1TrS+u8ReN+/EbQmBQgdA6fPur+cib/w+S0wiK2OugY6ngG5CA+2HTfEd02ZXDwk9S4dvUIQEB2FOW17oemAasAn8Yq9LZUVidSgBXeEWlN9y0JaA4mjfE/oqBroXVOCwce+1JG5dlTMWkBTXTd8hnrd2XeWURyzBlzQKLybtFBJ7pWHyC+UoOiYetZ9iw112bGZz+1NNUwEPKORPLdMJ7oXDBKh2gThMBNOwf3zURjtRMdwG/M0R1/maCsiO6O3XA=='
+AWS_ACCESS_KEY_ID = 'ASIA4E6YYM7RCGMES27S'
+AWS_SECRET_ACCESS_KEY = 'D+dghs6DMeKbcA8AIKVM5r1CjZU/hBnkIMY/Ruwi'
+AWS_SESSION_TOKEN ='IQoJb3JpZ2luX2VjEIj//////////wEaCXVzLXdlc3QtMiJGMEQCIBWJfDZygD5cmy9YZU8N2Kx4RF3XvzuSxidbwgcM8LU+AiAQcmiaTN9QCTDUq1S/nOvgYXo340jlDvKiamPpfi+phiqkAggxEAAaDDgzNTI4ODg1MjQ1MCIMF9CWxMSHVVf5C7ZkKoECji4k4GLYFjURBanBfE11jUvW3j5wZHNb0k3xYXWcT6jfN7mZsN70xQxC6xzCfh+7l26HQFVMqkd/OYXyzf+uzm7jLyYxtmBJSZ92QoOV8EurVpxRpxkmmHF13RSQFXgtxCP+nO0UGqSSsHB/BHkeoI02F6hjM+Z69ucQ6upI0GdpAnIG8ao+w3TI6bBKSio+o+MMhQO4T7dKVn7iGx5PXCJ2n6ELYDaICw2J7CIu4OniJdAeS0/+aOIdt6KflIEVvHERNOmILfsdYwivWQPm8b9TuZRKbfKnvDB3NPmFwbKOi2YWi+2iG0BJQohgOCu9rGVm9G4kywkNhqGWZ7O7EyUwteeXugY6ngHrmES9t77SsArfwe53sbRf5UrItzSiMm0LrhcwoCv7SePtq4bomePZ4GqjcvMscwjewi+GRQQNqxAidgV1mIyVBtmo+hsrc3+lP1WH/A3VUdF4YETCelQ5OJyitta9Oz1MHhXpo8lVzdcj7TQNPMiXy2CwOOJOpxWm0dQFNeGU83PyblXAkFsfNOYsMo7LciqTn7WIw0IgXAG1LQMCgg=='
 AWS_REGION = 'us-east-1'  # e.g., 'us-east-1'
 BUCKET_NAME = 'mybucketawsapi'
+
 
 
 # AWS S3 Configuration
