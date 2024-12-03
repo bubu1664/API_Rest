@@ -1,5 +1,10 @@
 import os
 import boto3
+import uuid
+import time
+import random
+import string
+from boto3.dynamodb.conditions import Key
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
@@ -25,9 +30,9 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 db = SQLAlchemy(app)
 
 # AWS Credentials and Bucket Configuration
-AWS_ACCESS_KEY_ID = 'ASIA4E6YYM7RCGMES27S'
-AWS_SECRET_ACCESS_KEY = 'D+dghs6DMeKbcA8AIKVM5r1CjZU/hBnkIMY/Ruwi'
-AWS_SESSION_TOKEN ='IQoJb3JpZ2luX2VjEIj//////////wEaCXVzLXdlc3QtMiJGMEQCIBWJfDZygD5cmy9YZU8N2Kx4RF3XvzuSxidbwgcM8LU+AiAQcmiaTN9QCTDUq1S/nOvgYXo340jlDvKiamPpfi+phiqkAggxEAAaDDgzNTI4ODg1MjQ1MCIMF9CWxMSHVVf5C7ZkKoECji4k4GLYFjURBanBfE11jUvW3j5wZHNb0k3xYXWcT6jfN7mZsN70xQxC6xzCfh+7l26HQFVMqkd/OYXyzf+uzm7jLyYxtmBJSZ92QoOV8EurVpxRpxkmmHF13RSQFXgtxCP+nO0UGqSSsHB/BHkeoI02F6hjM+Z69ucQ6upI0GdpAnIG8ao+w3TI6bBKSio+o+MMhQO4T7dKVn7iGx5PXCJ2n6ELYDaICw2J7CIu4OniJdAeS0/+aOIdt6KflIEVvHERNOmILfsdYwivWQPm8b9TuZRKbfKnvDB3NPmFwbKOi2YWi+2iG0BJQohgOCu9rGVm9G4kywkNhqGWZ7O7EyUwteeXugY6ngHrmES9t77SsArfwe53sbRf5UrItzSiMm0LrhcwoCv7SePtq4bomePZ4GqjcvMscwjewi+GRQQNqxAidgV1mIyVBtmo+hsrc3+lP1WH/A3VUdF4YETCelQ5OJyitta9Oz1MHhXpo8lVzdcj7TQNPMiXy2CwOOJOpxWm0dQFNeGU83PyblXAkFsfNOYsMo7LciqTn7WIw0IgXAG1LQMCgg=='
+AWS_ACCESS_KEY_ID = 'ASIA4E6YYM7RHHTUZWYU'
+AWS_SECRET_ACCESS_KEY = 'i2Z+/5wX5i4srXoaX/6CZvaVDbqEcLLZSSpsXald'
+AWS_SESSION_TOKEN = 'IQoJb3JpZ2luX2VjEDEaCXVzLXdlc3QtMiJHMEUCIQDmBM1MEgnO5wMAl//a376CPMKenYa1OyugP8TyD4y4/wIgDhDIwNDG3zAueBRJOf2Ix5fqyLD12fv2MDvEqHNlIO8qrQII2v//////////ARAAGgw4MzUyODg4NTI0NTAiDO/C7+snDRqTT4+lwyqBAvjcf7/AViy7bcsrYR4I6u6TqL4XDycXQQVKs2WzM1kOQo+U/jW4qJm/YA4cU67YmxNC/JlCjJlGC/MslQloo+vqXVGHh3KdZpyeWM2AyxDK1hzLBdHdhtoYGGi/v0jazt8iP+Hogst3tOnKiarnOMriqhUjrEq73CBNnlwbyr721zEvnkcSlMO2vvrOOOcGnmjgndorrze4F9nu9kOJQ2kgh2V3i7+GoeFnx8tkPPx0i5WaQ71/KoocRqsRi0UiVqD3s2dEyzsi8WZrbiBjkfNYaN4ygiWACK/mVSpSMYUZ+c1cM64I5AIGa0B2xSRnlUo90U0AVgIPQsZe+bAve9AlMML5vLoGOp0Bllc/LPq4rjlXTREEv3dguey0VKnqQ9hBVzyA+yw5Q4PSiNocJVkwMHVYpcLONYVYcYOukflyGOUu7gyFEK2lGOWkV5thaz7fftj7g39nyD5RC/38DnYdmkNr8Ik5FlPnvjAtHrnsnT1rUybqXgDcwDzI0Kd8s7gSti8iyBWM8XpNX8pZvx9ohv0N7yeqPrmO6JND7VevgoVISzkdUQ=='
 AWS_REGION = 'us-east-1'  # e.g., 'us-east-1'
 BUCKET_NAME = 'mybucketawsapi'
 
@@ -36,6 +41,33 @@ BUCKET_NAME = 'mybucketawsapi'
 # AWS S3 Configuration
 s3_client = boto3.client(
     's3',
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    aws_session_token=AWS_SESSION_TOKEN,
+    region_name=AWS_REGION
+)
+
+# Initialisation du client DynamoDB
+dynamodb_client = boto3.resource(
+    'dynamodb',
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    aws_session_token=AWS_SESSION_TOKEN,
+    region_name=AWS_REGION
+)
+dynamodb_table = dynamodb_client.Table('sesiones-alumnos')
+def generate_session_string(length=128):
+    """Génère une chaîne aléatoire de la longueur spécifiée."""
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+
+
+# Configuration SNS
+SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:835288852450:AlumnoNotifications'
+
+# Initialisation du client SNS
+sns_client = boto3.client(
+    'sns',
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
     aws_session_token=AWS_SESSION_TOKEN,
@@ -232,6 +264,85 @@ def delete_alumno(id):
     db.session.commit()
     return jsonify({"message": "Alumno deleted successfully"}), 200
 
+@app.route('/alumnos/<int:id>/session/login', methods=['POST'])
+def session_login(id):
+    data = request.get_json()
+    password = data.get('password')
+
+    # Vérifier que l'élève existe dans la base
+    alumno = Alumno.query.get(id)
+    if not alumno:
+        return jsonify({"error": "Alumno not found"}), 404
+
+    # Vérifier le mot de passe
+    if alumno.password != password:
+        return jsonify({"error": "Invalid password"}), 400
+
+    # Générer les informations de session
+    session_id = str(uuid.uuid4())
+    session_string = generate_session_string()
+    timestamp = int(time.time())
+
+    # Enregistrer la session dans DynamoDB
+    try:
+        dynamodb_table.put_item(
+            Item={
+                "id": session_id,
+                "fecha": timestamp,
+                "alumnoId": id,
+                "active": True,
+                "sessionString": session_string
+            }
+        )
+        return jsonify({"session_id": session_id, "sessionString": session_string}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to create session: {str(e)}"}), 500
+
+@app.route('/alumnos/<int:id>/session/verify', methods=['POST'])
+def session_verify(id):
+    data = request.get_json()
+    session_string = data.get('sessionString')
+
+    # Rechercher la session dans DynamoDB
+    try:
+        response = dynamodb_table.scan(
+            FilterExpression=Key('alumnoId').eq(id) & Key('sessionString').eq(session_string)
+        )
+        if not response['Items']:
+            return jsonify({"error": "Invalid session"}), 400
+
+        session = response['Items'][0]
+        if session['active']:
+            return jsonify({"message": "Session is valid"}), 200
+        else:
+            return jsonify({"error": "Session is inactive"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Failed to verify session: {str(e)}"}), 500
+
+@app.route('/alumnos/<int:id>/session/logout', methods=['POST'])
+def session_logout(id):
+    data = request.get_json()
+    session_string = data.get('sessionString')
+
+    # Rechercher et désactiver la session dans DynamoDB
+    try:
+        response = dynamodb_table.scan(
+            FilterExpression=Key('alumnoId').eq(id) & Key('sessionString').eq(session_string)
+        )
+        if not response['Items']:
+            return jsonify({"error": "Invalid session"}), 400
+
+        session_id = response['Items'][0]['id']
+        dynamodb_table.update_item(
+            Key={'id': session_id},
+            UpdateExpression="SET active = :inactive",
+            ExpressionAttributeValues={':inactive': False}
+        )
+        return jsonify({"message": "Session terminated"}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to logout: {str(e)}"}), 500
+
+
 # ROUTES FOR PROFESORES
 @app.route('/profesores', methods=['GET'])
 def get_profesores():
@@ -278,6 +389,33 @@ def delete_profesor(id):
     db.session.delete(profesor)
     db.session.commit()
     return jsonify({"message": "Profesor deleted"}), 200
+
+
+@app.route('/alumnos/<int:id>/email', methods=['POST'])
+def send_email_to_alumno(id):
+    # Récupérer les informations de l'élève
+    alumno = Alumno.query.get(id)
+    if not alumno:
+        return jsonify({"error": "Alumno not found"}), 404
+
+    # Contenu du message
+    message = (
+        f"Información del Alumno:\n"
+        f"Nombre: {alumno.nombres} {alumno.apellidos}\n"
+        f"Matrícula: {alumno.matricula}\n"
+        f"Promedio: {alumno.promedio}\n"
+    )
+
+    # Envoi de la notification via SNS
+    try:
+        response = sns_client.publish(
+            TopicArn=SNS_TOPIC_ARN,
+            Message=message,
+            Subject=f"Notificación para {alumno.nombres} {alumno.apellidos}"
+        )
+        return jsonify({"message": "Notificación enviada exitosamente", "response": response}), 200
+    except Exception as e:
+        return jsonify({"error": f"No se pudo enviar la notificación: {str(e)}"}), 500
 
 # RUN THE APPLICATION
 if __name__ == '__main__':
