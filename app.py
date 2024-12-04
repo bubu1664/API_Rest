@@ -30,9 +30,9 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 db = SQLAlchemy(app)
 
 # AWS Credentials and Bucket Configuration
-AWS_ACCESS_KEY_ID = 'ASIA4E6YYM7RHHTUZWYU'
-AWS_SECRET_ACCESS_KEY = 'i2Z+/5wX5i4srXoaX/6CZvaVDbqEcLLZSSpsXald'
-AWS_SESSION_TOKEN = 'IQoJb3JpZ2luX2VjEDEaCXVzLXdlc3QtMiJHMEUCIQDmBM1MEgnO5wMAl//a376CPMKenYa1OyugP8TyD4y4/wIgDhDIwNDG3zAueBRJOf2Ix5fqyLD12fv2MDvEqHNlIO8qrQII2v//////////ARAAGgw4MzUyODg4NTI0NTAiDO/C7+snDRqTT4+lwyqBAvjcf7/AViy7bcsrYR4I6u6TqL4XDycXQQVKs2WzM1kOQo+U/jW4qJm/YA4cU67YmxNC/JlCjJlGC/MslQloo+vqXVGHh3KdZpyeWM2AyxDK1hzLBdHdhtoYGGi/v0jazt8iP+Hogst3tOnKiarnOMriqhUjrEq73CBNnlwbyr721zEvnkcSlMO2vvrOOOcGnmjgndorrze4F9nu9kOJQ2kgh2V3i7+GoeFnx8tkPPx0i5WaQ71/KoocRqsRi0UiVqD3s2dEyzsi8WZrbiBjkfNYaN4ygiWACK/mVSpSMYUZ+c1cM64I5AIGa0B2xSRnlUo90U0AVgIPQsZe+bAve9AlMML5vLoGOp0Bllc/LPq4rjlXTREEv3dguey0VKnqQ9hBVzyA+yw5Q4PSiNocJVkwMHVYpcLONYVYcYOukflyGOUu7gyFEK2lGOWkV5thaz7fftj7g39nyD5RC/38DnYdmkNr8Ik5FlPnvjAtHrnsnT1rUybqXgDcwDzI0Kd8s7gSti8iyBWM8XpNX8pZvx9ohv0N7yeqPrmO6JND7VevgoVISzkdUQ=='
+AWS_ACCESS_KEY_ID = 'ASIA4E6YYM7RGJZTBFT2'
+AWS_SECRET_ACCESS_KEY = 'lqGoC2t6YQ5HujNvj9+R6W6Qvi5u7ztyBkFFtlGR'
+AWS_SESSION_TOKEN = 'IQoJb3JpZ2luX2VjEDgaCXVzLXdlc3QtMiJHMEUCIQDKsh3AoIN0G1O1CS4m+APO7yvPk+XjpK8DxZwzyb+eOAIgalKWbFS89J9pB/6SHPjMOTuywHRjTePNgjsw5RkK614qrQII4f//////////ARAAGgw4MzUyODg4NTI0NTAiDPUld6sNJ8yHmtM1oiqBAm4Rr6xtT7YqACndTFO6qQK0pSfUEIefFM2Ad8VJRiNWDxWjR8t8IbtULOdpXcmAjrdV2CQ3dh+s/8k4RAeK6Asm37w593s6+E0c2d/iMk7irMv52Trp8bJ8+HoIZ4SZp5wIps3NZk23JsXJmMKt8gfg5gNEk+F57iuEGiGgkewuFg9jtPGmwH+nbClw07US6f9rfi0CUzGxDumdPdaoWj0K1gCaa2hUkt9A0tG3InmJCjMD+sb5aO5SkhvqO5EoaXrAkaou95rrMSV2Y5hFI6+RQhB4NcqguyWS0a3aACAA/7fkvHqJpvQKy6hbcwoxB7F/jt1RhDk+XnoF5dtNlsUuMKu/vroGOp0BG3umiJQ2Ngn1QQZJ1AX1htt1X0u4iUqeSjQBlQkkSdMx9bU2hDDPEwUGiVugYUevkbe7L08AM+IgVIUMqfMXI8CGz1g47D85md0+PmdxossSD3DVlpzsVIS2rV+2NyAWalp3dlGLoYnQTIoIqidtqP3yw4bUab8BCesgwjYb7dY43hx3HPahn1olrTpaXdU6AT9lrY/fP33PQ6UdWg=='
 AWS_REGION = 'us-east-1'  # e.g., 'us-east-1'
 BUCKET_NAME = 'mybucketawsapi'
 
@@ -47,7 +47,7 @@ s3_client = boto3.client(
     region_name=AWS_REGION
 )
 
-# Initialisation du client DynamoDB
+# Initialisation client DynamoDB
 dynamodb_client = boto3.resource(
     'dynamodb',
     aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -57,7 +57,6 @@ dynamodb_client = boto3.resource(
 )
 dynamodb_table = dynamodb_client.Table('sesiones-alumnos')
 def generate_session_string(length=128):
-    """Génère une chaîne aléatoire de la longueur spécifiée."""
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
@@ -105,7 +104,7 @@ class Profesor(db.Model):
     nombres = db.Column(db.String(100), nullable=False)
     apellidos = db.Column(db.String(100), nullable=True)
     numeroEmpleado = db.Column(db.Integer, unique=True, nullable=False)
-    horasClase = db.Column(db.Integer, nullable=False)  # Changer en Integer
+    horasClase = db.Column(db.Integer, nullable=False)
 
     def to_dict(self):
         return {
@@ -118,7 +117,6 @@ class Profesor(db.Model):
 
 
 # DATABASE INITIALIZATION
-# Initialisation de la base après la configuration de l'application
 with app.app_context():
     db.create_all()
 
@@ -173,30 +171,20 @@ def upload_foto_alumno(id):
         return jsonify({"error": "No file uploaded"}), 400
 
     files = request.files
-    print(f"Files in request: {files}")
-
-    # Si le champ 'foto' contient un tuple (ce qui ne devrait pas arriver normalement)
     if isinstance(files['foto'], tuple):
         return jsonify({"error": "Expected file, but got tuple instead"}), 400
 
     # Affichage du contenu de file pour débogage
     file = files['foto']
-    print(f"File type: {type(file)}")
-    print(f"File filename type: {type(file.filename)}")
-    print(f"File filename: {file.filename}")
-    print("1")
 
     if not file or not hasattr(file, 'filename') or not file.filename:
         return jsonify({"error": "Invalid file"}), 400
-    print("2")
 
     if not allowed_file(file.filename):
         return jsonify({"error": "Invalid file type"}), 400
-    print("3")
     try:
         # Nom du fichier S3
         filename = f"alumnos/{id}/{file.filename}"
-        print("4")
 
         # Téléchargement direct vers S3
         s3_client.upload_fileobj(
@@ -205,18 +193,14 @@ def upload_foto_alumno(id):
             filename,
             ExtraArgs={'ACL':'public-read'}
         )
-        print("5")
 
         # URL publique
-        fotoPerfilUrl = f"https://{BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{filename}"
-        print("6")
+        fotoPerfilUrl = f"https://{BUCKET_NAME}.s3.amazonaws.com/{filename}"
 
     # Mise à jour dans la base de données
         alumno.fotoPerfilUrl = fotoPerfilUrl
-        print("7")
 
         db.session.commit()
-        print("8")
 
         return jsonify({"fotoPerfilUrl": fotoPerfilUrl}), 200
 
@@ -324,7 +308,6 @@ def session_logout(id):
     data = request.get_json()
     session_string = data.get('sessionString')
 
-    # Rechercher et désactiver la session dans DynamoDB
     try:
         response = dynamodb_table.scan(
             FilterExpression=Key('alumnoId').eq(id) & Key('sessionString').eq(session_string)
@@ -393,12 +376,9 @@ def delete_profesor(id):
 
 @app.route('/alumnos/<int:id>/email', methods=['POST'])
 def send_email_to_alumno(id):
-    # Récupérer les informations de l'élève
     alumno = Alumno.query.get(id)
     if not alumno:
         return jsonify({"error": "Alumno not found"}), 404
-
-    # Contenu du message
     message = (
         f"Información del Alumno:\n"
         f"Nombre: {alumno.nombres} {alumno.apellidos}\n"
@@ -406,7 +386,6 @@ def send_email_to_alumno(id):
         f"Promedio: {alumno.promedio}\n"
     )
 
-    # Envoi de la notification via SNS
     try:
         response = sns_client.publish(
             TopicArn=SNS_TOPIC_ARN,
@@ -420,5 +399,5 @@ def send_email_to_alumno(id):
 # RUN THE APPLICATION
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Crée les tables si elles n'existent pas
+        db.create_all()
     app.run(host='0.0.0.0', port=5000, debug=True)
